@@ -1,0 +1,78 @@
+#TwoSample MR example code in R version 4.0.3
+
+#load TwoSampleMR package
+library(TwoSampleMR) #version 0.5.6
+
+#read in exposure data, add exact file path and adjust headers as needed
+exp_dat <- read_exposure_data(
+filename = "add_file_path_here.csv",
+sep = ",",
+snp_col = "SNP",
+beta_col = "beta",
+se_col = "se",
+effect_allele_col = "effect_allele",
+eaf_col = "eaf",
+)
+
+table(exp_dat$mr_keep.exposure)
+
+#clump the data
+exp_dat_clumped <- clump_data(Udler_exp_dat) 
+
+#check dimentions of the dataframe
+dim(exp_dat_clumped)
+
+#compare to before clumping
+dim(exp_dat)
+
+#read in outcome data, edit file name and headers as needed
+out_dat <- read_outcome_data(
+snps = exp_dat_clumped$SNP,
+filename = "edit_file_name.txt",
+sep = ",",
+snp_col = "SNP",
+beta_col = "beta",
+se_col = "se",
+effect_allele_col = "effect_allele",
+other_allele_col = "other_allele",
+eaf_col = "eaf",
+pval_col = "pval",
+)
+
+#harmonise the exposure and outcome data
+harmonised_data  <- harmonise_data(
+exposure_dat = exp_dat_clumped,
+outcome_dat = out_dat
+)
+
+#set seed
+set.seed(100)
+
+#perform MR
+res_exp_out <- mr(harmonised_data)
+
+#view output
+res_exp_out
+
+#perform sensitivity tests
+mr_heterogeneity(harmonised)
+
+mr_pleiotropy_test(harmonised)
+
+res_single_Udler_gecco <- mr_singlesnp(harmonised_data)
+
+#leave one out analysis
+res_loo_Udler_gecco <- mr_leaveoneout(harmonised_data)
+
+#visualise results with scatter plot, amend file path and name
+pdf("results/MR_Scatter.pdf")
+p1_v1 <- mr_scatter_plot(res_exp_out, harmonised_data)
+p1_v1[[1]]
+dev.off()
+
+#visualise single SNP sensitivity results with forest plot, amend file path and name
+res_single <- mr_singlesnp(harmonised_data)
+pdf("results/MR_forestplot.pdf")
+p2 <- mr_forest_plot(res_single)
+p2[[1]]
+dev.off()
